@@ -3,5 +3,101 @@
   "dataset_role": "group",
   "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
   "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "cases": [
+    {
+      "id": "G01_weather_hanoi",
+      "phase": "B", "suite": "group",
+      "query": "Thời tiết Hà Nội hôm nay thế nào?",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "weather", "args": {"location": "Hanoi"}}]},
+      "metadata": {"what_it_tests": "Weather query for specific city → calls weather tool with location='Hanoi'."}
+    },
+    {
+      "id": "G02_weather_missing_location",
+      "phase": "B", "suite": "group",
+      "query": "Thời tiết hôm nay thế nào?",
+      "failure_type": "missing_info",
+      "expect": {"tool_calls": [{"name": "clarify", "args": {"response_type": "text"}}]},
+      "metadata": {"what_it_tests": "Weather query with missing city/location → calls clarify tool."}
+    },
+    {
+      "id": "G03_out_of_scope_cooking",
+      "phase": "B", "suite": "group",
+      "query": "Cách làm bánh mì Việt Nam giòn ngon tại nhà.",
+      "failure_type": "out_of_scope",
+      "expect": {"no_tool": true, "behavior": "refuse"},
+      "metadata": {"what_it_tests": "Cooking recipe is out of scope → refuses and calls no tools."}
+    },
+    {
+      "id": "G04_confirm_send_telegram",
+      "phase": "B", "suite": "group",
+      "query": "Gửi báo cáo này lên kênh Telegram của nhóm.",
+      "failure_type": "wrong_boundary",
+      "expect": {"tool_calls": [{"name": "clarify", "args": {"response_type": "yes_no"}}]},
+      "metadata": {"what_it_tests": "Write action request without confirmation → calls clarify with response_type='yes_no'."}
+    },
+    {
+      "id": "G05_search_tweets_latest",
+      "phase": "B", "suite": "group",
+      "query": "Các tweet mới nhất nói về OpenAI",
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "social_search", "args": {"query": "OpenAI", "search_type": "Latest"}}]},
+      "metadata": {"what_it_tests": "Latest tweets query → calls social_search with query='OpenAI' and search_type='Latest'."}
+    },
+    {
+      "id": "G06_multiturn_weather_clarify",
+      "phase": "B", "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Cho mình xem thời tiết hôm nay"},
+        {"role": "user", "content": "Ở thành phố Hồ Chí Minh nhé"}
+      ],
+      "failure_type": "missing_info",
+      "expect": {"tool_calls": [{"name": "weather", "args": {"location": "Ho Chi Minh City"}}]},
+      "metadata": {"what_it_tests": "2 turns: carry weather request, receive location in turn 2, map 'thành phố Hồ Chí Minh' to location."}
+    },
+    {
+      "id": "G07_multiturn_weather_correction",
+      "phase": "B", "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Thời tiết ở Đà Nẵng thế nào?"},
+        {"role": "user", "content": "À nhầm, cho mình xem thời tiết ở Hà Nội nhé"}
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "weather", "args": {"location": "Hanoi"}}]},
+      "metadata": {"what_it_tests": "2 turns: correct location Đà Nẵng -> Hà Nội (Hanoi) for weather tool."}
+    },
+    {
+      "id": "G08_multiturn_switch_weather_to_tweets",
+      "phase": "B", "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Thời tiết Hà Nội hôm nay ra sao?"},
+        {"role": "user", "content": "Thôi không xem thời tiết nữa, tìm tweet của Sam Altman đi"}
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "timeline", "args": {"screenname": "sama"}}]},
+      "metadata": {"what_it_tests": "2 turns: explicitly stop weather, switch to timeline of Sam Altman."}
+    },
+    {
+      "id": "G09_multiturn_clarify_then_send",
+      "phase": "B", "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Đăng bản tin này lên Telegram"},
+        {"role": "user", "content": "Đồng ý, gửi đi"}
+      ],
+      "failure_type": "wrong_boundary",
+      "expect": {"tool_calls": [{"name": "send", "args": {"confirmed": true}}]},
+      "metadata": {"what_it_tests": "2 turns: user confirms the yes_no prompt in turn 2 → calls send with confirmed=true."}
+    },
+    {
+      "id": "G10_multiturn_out_of_scope_correction",
+      "phase": "B", "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Viết giúp mình một hàm Python tính Fibonacci"},
+        {"role": "user", "content": "À, ý mình là tìm bài viết này trên web: https://openai.com/blog"}
+      ],
+      "failure_type": "out_of_scope",
+      "expect": {"tool_calls": [{"name": "fetch", "args": {"url": "https://openai.com/blog"}}]},
+      "metadata": {"what_it_tests": "2 turns: start with out of scope coding query, switch to valid URL fetch query in turn 2."}
+    }
+  ]
 }

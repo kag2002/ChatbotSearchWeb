@@ -174,10 +174,11 @@ export default function LogsPage() {
                 />
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {runs.map((run) => (
+                  {runs.map((run, i) => (
                     <RunCard
                       key={run.run_id}
                       run={run}
+                      index={runs.length - i}
                       isSelected={selectedFile === run.file}
                       onSelect={(r) => {
                         setSelectedFile(r.file);
@@ -202,10 +203,11 @@ export default function LogsPage() {
                 />
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {transcripts.map((t) => (
+                  {transcripts.map((t, i) => (
                     <TranscriptCard
                       key={t.transcript_id}
                       transcript={t}
+                      index={transcripts.length - i}
                       isSelected={selectedFile === t.file}
                       onSelect={(tr) => {
                         setSelectedFile(tr.file);

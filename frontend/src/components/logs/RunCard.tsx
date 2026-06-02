@@ -10,9 +10,11 @@ import {
   Tag,
   ArrowRight,
 } from 'lucide-react';
+import { formatDateTime } from '../../utils/format';
 
 interface RunCardProps {
   run: RunSummary;
+  index?: number;
   onSelect: (run: RunSummary) => void;
   isSelected?: boolean;
   onToggleCompare?: (run: RunSummary) => void;
@@ -47,6 +49,7 @@ function AccuracyBar({ label, value }: { label: string; value: number }) {
 
 export const RunCard: React.FC<RunCardProps> = ({
   run,
+  index,
   onSelect,
   isSelected,
   onToggleCompare,
@@ -74,6 +77,11 @@ export const RunCard: React.FC<RunCardProps> = ({
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2 flex-wrap">
+          {index != null && (
+            <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-md bg-slate-700/40 text-slate-300 border border-slate-600/30 tabular-nums">
+              #{index}
+            </span>
+          )}
           <span className="px-2 py-0.5 text-[10px] font-bold rounded-md bg-violet-600/20 text-violet-300 border border-violet-500/20 uppercase tracking-wider">
             {run.version}
           </span>
@@ -119,22 +127,20 @@ export const RunCard: React.FC<RunCardProps> = ({
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-3 gap-2 mb-3">
-        <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
-          <Tag className="w-3 h-3 text-slate-500" />
-          <span className="truncate">{run.provider}</span>
+      <div className="flex flex-col gap-1.5 mb-3 text-[10px] text-slate-400">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <Tag className="w-3 h-3 text-slate-500" />
+            <span className="max-w-[120px] truncate">{run.provider}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Cpu className="w-3 h-3 text-slate-500" />
+            <span className="max-w-[150px] truncate">{run.model?.split('/').pop()}</span>
+          </div>
         </div>
-        <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
-          <Cpu className="w-3 h-3 text-slate-500" />
-          <span className="truncate">{run.model?.split('/').pop()}</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
-          <Clock className="w-3 h-3 text-slate-500" />
-          <span className="truncate">
-            {run.generated_at
-              ? new Date(run.generated_at).toLocaleDateString('vi-VN')
-              : '—'}
-          </span>
+        <div className="flex items-center gap-1.5 text-slate-300 font-medium">
+          <Clock className="w-3 h-3 text-violet-400" />
+          <span>{formatDateTime(run.generated_at)}</span>
         </div>
       </div>
 

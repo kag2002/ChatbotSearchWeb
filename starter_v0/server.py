@@ -25,7 +25,8 @@ if str(ROOT) not in sys.path:
 from env_loader import load_lab_env
 from providers import make_provider
 from tools import load_tool_declarations, to_openai_tools
-from versioning import build_artifact_version
+from datetime import datetime
+from versioning import build_artifact_version, artifact_version_dict
 from chat import run_model_tool_loop
 
 # Load environment variables
@@ -40,6 +41,7 @@ class ChatRequest(BaseModel):
     messages: List[ChatMessage] = Field(..., description="The conversation history")
     temperature: Optional[float] = Field(0.0, ge=0.0, le=2.0, description="Sampling temperature")
     max_tokens: Optional[int] = Field(None, gt=0, description="Maximum number of tokens to generate")
+    session_id: Optional[str] = Field(None, description="The session ID from the frontend to group transcripts")
 
 class ChatResponseUsage(BaseModel):
     prompt_tokens: int = Field(0, description="Number of tokens in the prompt")
@@ -197,7 +199,6 @@ async def chat_endpoint(request: ChatRequest):
             model=selected_model,
             max_tool_rounds=4
         )
-        
         reply = result.get("assistant_text", "")
         
         # 5. Measure latency and calculate tokens
@@ -209,6 +210,63 @@ async def chat_endpoint(request: ChatRequest):
         prompt_tokens = estimate_tokens(input_text)
         completion_tokens = estimate_tokens(reply)
         total_tokens = prompt_tokens + completion_tokens
+        
+        # 6. Save transcript if session_id is provided
+        if request.session_id:
+            try:
+                def now_iso() -> str:
+                    return datetime.now().isoformat(timespec="seconds")
+                
+                TRANSCRIPTS_DIR.mkdir(parents=True, exist_ok=True)
+                transcript_path = TRANSCRIPTS_DIR / f"web_{request.session_id}.json"
+                
+                transcript = None
+                if transcript_path.exists():
+                    try:
+                        transcript = json.loads(transcript_path.read_text(encoding="utf-8"))
+                    except Exception:
+                        pass
+                
+                if not transcript:
+                    artifact_version = build_artifact_version(VERSION_LABEL, system_prompt_path, tools_path)
+                    transcript = {
+                        "transcript_id": f"web_{request.session_id}",
+                        **artifact_version_dict(artifact_version),
+                        "provider": PROVIDER_NAME,
+                        "model": selected_model or PROVIDER_NAME,
+                        "system_prompt": str(system_prompt_path),
+                        "tools": str(tools_path),
+                        "history_window": 5,
+                        "max_tool_rounds": 4,
+                        "created_at": now_iso(),
+                        "turns": []
+                    }
+                
+                user_text = request.messages[-1].content if request.messages else ""
+                turn_index = len(transcript.get("turns", [])) + 1
+                
+                turn_record = {
+                    "turn_index": turn_index,
+                    "started_at": now_iso(),
+                    "user": user_text,
+                    "status": result.get("status", "answered"),
+                    "assistant_text": reply,
+                    "rounds": result.get("rounds", []),
+                    "tool_events": result.get("tool_events", []),
+                    "ended_at": now_iso(),
+                    "latency_ms": latency_ms,
+                    "prompt_tokens": prompt_tokens,
+                    "completion_tokens": completion_tokens,
+                    "total_tokens": total_tokens
+                }
+                
+                transcript["turns"].append(turn_record)
+                transcript["updated_at"] = now_iso()
+                
+                transcript_path.write_text(json.dumps(transcript, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+                print(f"Saved web transcript to {transcript_path}")
+            except Exception as e:
+                print(f"Error writing transcript: {e}")
         
         return ChatResponse(
             reply=reply,

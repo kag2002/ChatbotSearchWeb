@@ -60,7 +60,7 @@ export function useChatStream() {
 
     try {
       // Call backend API
-      const response = await sendChatMessage(updatedMessages);
+      const response = await sendChatMessage(updatedMessages, 0.7, currentSessionId || undefined);
 
       // Clear pending step timers since response arrived
       stepTimers.forEach(clearTimeout);

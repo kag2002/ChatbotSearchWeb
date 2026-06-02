@@ -116,3 +116,11 @@ tools:
         max_pages: {type: integer, default: 5, description: "Số trang"}
         max_chars: {type: integer, default: 8000, description: "Số ký tự"}
       required: [arxiv_url]
+
+  - name: weather
+    description: "Tra cứu thời tiết hiện tại của một địa điểm hoặc thành phố."
+    parameters:
+      type: object
+      properties:
+        location: {type: string, default: "", description: "Tên thành phố hoặc địa điểm (ví dụ: Hanoi, New York)"}
+      required: [location]

@@ -1,14 +1,19 @@
 import { ChatResponse, Message } from "../types/chat";
 
-const API_BASE = "http://127.0.0.1:8000/api";
+const API_BASE = "/api";
 
-export async function sendChatMessage(messages: Message[], temperature: number = 0.7): Promise<ChatResponse> {
+export async function sendChatMessage(
+  messages: Message[],
+  temperature: number = 0.7,
+  sessionId?: string
+): Promise<ChatResponse> {
   const payload = {
     messages: messages.map(m => ({
       role: m.role,
       content: m.content
     })),
-    temperature
+    temperature,
+    session_id: sessionId
   };
 
   const response = await fetch(`${API_BASE}/chat`, {

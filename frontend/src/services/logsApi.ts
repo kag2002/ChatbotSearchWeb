@@ -1,4 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://127.0.0.1:8000';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || '';
 
 export interface RunSummary {
   file: string;
@@ -34,14 +34,14 @@ export interface TranscriptSummary {
 }
 
 export async function fetchRuns(): Promise<RunSummary[]> {
-  const res = await fetch(`${API_BASE}/api/logs/runs`);
+  const res = await fetch(`${API_BASE}/api/logs/runs`, { cache: 'no-store' });
   if (!res.ok) throw new Error(`Failed to fetch runs: ${res.status}`);
   const data = await res.json();
   return data.runs ?? [];
 }
 
 export async function fetchTranscripts(): Promise<TranscriptSummary[]> {
-  const res = await fetch(`${API_BASE}/api/logs/transcripts`);
+  const res = await fetch(`${API_BASE}/api/logs/transcripts`, { cache: 'no-store' });
   if (!res.ok) throw new Error(`Failed to fetch transcripts: ${res.status}`);
   const data = await res.json();
   return data.transcripts ?? [];
@@ -49,7 +49,8 @@ export async function fetchTranscripts(): Promise<TranscriptSummary[]> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function fetchLogDetail(file: string): Promise<any> {
-  const res = await fetch(`${API_BASE}/api/logs/detail?file=${encodeURIComponent(file)}`);
+  const res = await fetch(`${API_BASE}/api/logs/detail?file=${encodeURIComponent(file)}`, { cache: 'no-store' });
   if (!res.ok) throw new Error(`Failed to fetch log detail: ${res.status}`);
   return res.json();
 }
+
