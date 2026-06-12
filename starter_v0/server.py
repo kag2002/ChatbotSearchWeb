@@ -296,8 +296,8 @@ def main():
     args = parser.parse_args()
     
     import os
-    PROVIDER_NAME = args.provider
-    VERSION_LABEL = args.version
+    PROVIDER_NAME = os.environ.get("PROVIDER_NAME") or args.provider
+    VERSION_LABEL = os.environ.get("VERSION_LABEL") or args.version
     MODEL_NAME = args.model or os.environ.get("MODEL_NAME")
     
     print(f"Starting Research Agent Server on {args.host}:{args.port}...")
