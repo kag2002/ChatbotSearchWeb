@@ -96,7 +96,8 @@ async def health():
         "status": "healthy",
         "provider": PROVIDER_NAME,
         "version": VERSION_LABEL,
-        "model": MODEL_NAME or "default"
+        "model": MODEL_NAME or "default",
+        "openai_base_url": os.environ.get("OPENAI_BASE_URL")
     }
 
 # ── Log Viewer API ───────────────────────────────────────────
