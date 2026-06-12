@@ -56,9 +56,10 @@ class OpenAIProvider:
         if self.api_key_env == "OPENROUTER_API_KEY":
             free_fallbacks = [
                 "google/gemini-2.5-flash:free",
-                "meta-llama/llama-3-8b-instruct:free",
-                "qwen/qwen-2.5-72b-instruct:free",
-                "mistralai/mistral-7b-instruct:free"
+                "meta-llama/llama-4-scout:free",
+                "meta-llama/llama-4-maverick:free",
+                "deepseek/deepseek-chat-v3-0324:free",
+                "qwen/qwen3-8b:free",
             ]
             for m in free_fallbacks:
                 if m != primary_model:
