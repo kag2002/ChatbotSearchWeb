@@ -78,9 +78,10 @@ app.add_middleware(
 )
 
 # Global variables initialized on startup
-PROVIDER_NAME = "openrouter"
-VERSION_LABEL = "v3"
-MODEL_NAME = None
+import os
+PROVIDER_NAME = os.environ.get("PROVIDER_NAME", "openrouter")
+VERSION_LABEL = os.environ.get("VERSION_LABEL", "v3")
+MODEL_NAME = os.environ.get("MODEL_NAME", None)
 
 @app.get("/")
 async def root():
