@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
     '*.trycloudflare.com'
   ],
   async rewrites() {
-    const backendUrl = process.env.BACKEND_URL || 'http://127.0.0.1:8000';
+    const backendUrl = process.env.BACKEND_URL || 'https://chatbotsearchweb-backend-production.up.railway.app';
     return [
       {
         source: '/api/:path*',
