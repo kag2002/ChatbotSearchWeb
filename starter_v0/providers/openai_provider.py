@@ -41,7 +41,6 @@ class OpenAIProvider:
 
         client = OpenAI(api_key=api_key, base_url=self.base_url)
         kwargs: dict[str, Any] = {
-            "model": model or self.default_model,
             "messages": messages,
             "temperature": temperature,
         }
@@ -50,10 +49,37 @@ class OpenAIProvider:
         if tool_choice is not None:
             kwargs["tool_choice"] = tool_choice
 
-        resp = client.chat.completions.create(**kwargs)
-        msg = resp.choices[0].message
-        calls: list[ToolCall] = []
-        for call in msg.tool_calls or []:
-            args = json.loads(call.function.arguments or "{}")
-            calls.append(ToolCall(name=call.function.name, args=args))
-        return ModelResponse(text=msg.content, tool_calls=calls, raw=resp)
+        primary_model = model or self.default_model
+        
+        # Build list of candidate models to try
+        models_to_try = [primary_model]
+        if self.api_key_env == "OPENROUTER_API_KEY":
+            free_fallbacks = [
+                "google/gemini-2.5-flash:free",
+                "meta-llama/llama-3-8b-instruct:free",
+                "qwen/qwen-2.5-72b-instruct:free",
+                "mistralai/mistral-7b-instruct:free"
+            ]
+            for m in free_fallbacks:
+                if m != primary_model:
+                    models_to_try.append(m)
+
+        last_error = None
+        for current_model in models_to_try:
+            try:
+                kwargs["model"] = current_model
+                print(f"[Model Fallback] Trying model: {current_model}...")
+                resp = client.chat.completions.create(**kwargs)
+                msg = resp.choices[0].message
+                calls: list[ToolCall] = []
+                for call in msg.tool_calls or []:
+                    args = json.loads(call.function.arguments or "{}")
+                    calls.append(ToolCall(name=call.function.name, args=args))
+                print(f"[Model Fallback] Successfully completed request with: {current_model}")
+                return ModelResponse(text=msg.content, tool_calls=calls, raw=resp)
+            except Exception as e:
+                last_error = e
+                print(f"[Model Fallback] Failed model {current_model}. Error: {e}")
+
+        # If all candidates failed, raise the last error
+        raise last_error
