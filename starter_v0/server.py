@@ -291,6 +291,7 @@ def main():
     parser.add_argument("--provider", choices=["openrouter", "openai", "anthropic", "gemini"], default="openrouter")
     parser.add_argument("--model", default=None)
     parser.add_argument("--version", default="v3", help="Student-chosen artifact version label, e.g. v3.")
+    parser.add_argument("--host", default="127.0.0.1", help="Host to bind the server to.")
     parser.add_argument("--port", type=int, default=8000)
     args = parser.parse_args()
     
@@ -298,10 +299,10 @@ def main():
     VERSION_LABEL = args.version
     MODEL_NAME = args.model
     
-    print(f"Starting Research Agent Server on port {args.port}...")
+    print(f"Starting Research Agent Server on {args.host}:{args.port}...")
     print(f"Provider: {PROVIDER_NAME}, Version: {VERSION_LABEL}, Model: {MODEL_NAME or 'default'}")
     
-    uvicorn.run("server:app", host="127.0.0.1", port=args.port, reload=True)
+    uvicorn.run("server:app", host=args.host, port=args.port, reload=True)
 
 if __name__ == "__main__":
     main()
