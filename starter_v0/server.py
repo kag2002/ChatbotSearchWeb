@@ -97,7 +97,8 @@ async def health():
         "provider": PROVIDER_NAME,
         "version": VERSION_LABEL,
         "model": MODEL_NAME or "default",
-        "openai_base_url": os.environ.get("OPENAI_BASE_URL")
+        "openai_base_url": os.environ.get("OPENAI_BASE_URL"),
+        "local_llm_tunnel_url": os.environ.get("LOCAL_LLM_TUNNEL_URL")
     }
 
 # ── Log Viewer API ───────────────────────────────────────────
