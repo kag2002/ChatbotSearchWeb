@@ -295,9 +295,10 @@ def main():
     parser.add_argument("--port", type=int, default=8000)
     args = parser.parse_args()
     
+    import os
     PROVIDER_NAME = args.provider
     VERSION_LABEL = args.version
-    MODEL_NAME = args.model
+    MODEL_NAME = args.model or os.environ.get("MODEL_NAME")
     
     print(f"Starting Research Agent Server on {args.host}:{args.port}...")
     print(f"Provider: {PROVIDER_NAME}, Version: {VERSION_LABEL}, Model: {MODEL_NAME or 'default'}")
